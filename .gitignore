@@ -19,6 +19,14 @@ node_modules/
 dist/
 web-build/
 
+# Build outputs and temp files
+build/
+*.bundle
+*.map
+*.tmp
+*.tsbuildinfo
+*.log
+
 # Metro
 .metro-health-check*
 

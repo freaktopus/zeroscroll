@@ -1,44 +1,137 @@
 # ZeroScroll
 
-ZeroScroll for better digital habits and stay focused. It encourages mindful device usage by letting you set personal commitments, track your screen time, and join a supportive community where everyone works towards healthier tech habits together.
+> **Built for Superteam Nepal University Tour – Kathmandu University Hackathon**
 
-## Commitment Feature
+ZeroScroll is a Solana-powered mobile app that helps you build better digital habits by staking real money on your screen time goals. If you fail, your friend wins your stake. Real accountability, real rewards, powered by blockchain.
 
-With ZeroScroll, you can pick a friend and send them your commitment. This means you pledge to use the app for a certain period. If you break your commitment, your friend receives a reward—money which is sent to them through an escrow system. This adds real accountability and makes your digital goals more meaningful!
+---
 
-## How does it work?
+## Problem Statement
+
+**Digital addiction is real.** Millions struggle with mindless scrolling, but most habit-tracking apps rely only on willpower—which often isn't enough.
+
+**ZeroScroll solves this** by adding financial accountability through Solana's escrow system. When real money is on the line, you're far more likely to stick to your goals.
+
+---
+
+## Why ZeroScroll?
+
+- **Financial Accountability:** Stake SOL on your commitment. Succeed and keep your money. Fail and your friend gets rewarded.
+- **Powered by Solana:** Fast, low-cost transactions via Solana blockchain and Phantom wallet integration.
+- **Social Motivation:** Pick a friend as your accountability partner—making it personal and fun.
+- **Real Impact:** Helps reduce screen time, boost productivity, and build healthier digital habits.
+
+---
+
+## 🔧 How It Works
 
 1. **Pick a Friend:** Select a friend to be your accountability partner.
-2. **Set Your Commitment:** Decide how long you’ll stick to your screen time goal and how much you’ll stake.
-3. **Escrow System:** Your stake is held securely. If you succeed, you keep your money. If you fail, your friend gets the reward!
-4. **Track Progress:** The app automatically monitors your screen time and shows your progress in real-time.
-5. **Earn Rewards:** Stay consistent and unlock badges or rewards as you reach your goals.
+2. **Set Your Commitment:** Choose your screen time goal and stake SOL.
+3. **Escrow System:** Your stake is held securely on Solana. If you succeed, you keep your money. If you fail, your friend gets the reward!
+4. **Track Progress:** The app monitors your screen time in real-time.
+5. **Earn Rewards:** Stay consistent and unlock achievements.
 
-ZeroScroll makes it easy and fun to take control of your digital life, with a simple interface, real accountability, and a focus on positive change.
+---
+
+## Tech Stack
+
+| Layer      | Technology                        |
+| ---------- | --------------------------------- |
+| Mobile     | React Native (Expo)               |
+| Backend    | Rust (Axum, SQLx, PostgreSQL)     |
+| Blockchain | Solana (Devnet), Phantom Wallet   |
+| Escrow     | Solana Native (SPL, Escrow Logic) |
+
+---
+
+## 📦 Project Structure
+
+```
+zeroscroll/
+├── zeroscroll/      # React Native mobile app (Expo)
+├── zcrow/           # Rust backend (Axum, SQLx, PostgreSQL)
+└── assets/          # Screenshots, demo video
+```
+
+---
+
+## 🚀 Setup Instructions
+
+### Prerequisites
+
+- Node.js & npm
+- Rust & Cargo
+- PostgreSQL
+- Expo CLI
+- Phantom Wallet (mobile)
+
+### Backend (Rust)
+
+```bash
+cd zcrow
+cp .env.example .env
+# Edit .env with your database URL and secrets
+cargo build --release
+cargo run --release
+```
+
+### Mobile App (Expo)
+
+```bash
+cd zeroscroll
+npm install
+npx expo start
+```
 
 ---
 
 ## App Demo
 
-<!-- Place screenshots or images of the app here -->
+<img src="./assets/1000052144.jpg" alt="Screenshot 1" width="180" />
+<img src="./assets/1000052148.jpg" alt="Screenshot 2" width="180" />
+<img src="./assets/1000052150.jpg" alt="Screenshot 3" width="180" />
+<img src="./assets/1000052152.jpg" alt="Screenshot 4" width="180" />
+<img src="./assets/1000052146.jpg" alt="Screenshot 5" width="180" />
 
-![SS1](./assets/1000052144.jpg)
-![SS2](./assets/1000052148.jpg)
-![SS3](./assets/1000052150.jpg)
+### Video Demo
 
-<!-- Place a video walkthrough or demo link here -->
-
-**[Video Demo Placeholder]**
-<video width="320" height="240" controls>
-
-<source src="./assets/1000052143.mp4" type="video/mp4">
-Your browser does not support the video tag.
+<video width="480" height="320" controls>
+  <source src="https://drive.google.com/uc?export=download&id=1V7qbTH7UEnkAQDOHFracS8x0_rhsTat2" type="video/mp4">
+  Your browser does not support the video tag.
 </video>
 
----
+[Click here to play the video directly](https://drive.google.com/file/d/1V7qbTH7UEnkAQDOHFracS8x0_rhsTat2/view)
 
 ---
 
-# zeroscroll
+## Live Link
 
-Vibecoded due to deadline. I will continue writting manually again from where I left before vibecoded.
+> _Coming soon!_ (APK or Expo link will be added here)
+
+---
+
+## Team
+
+| Name       | Role                 |
+| ---------- | -------------------- |
+| freaktopus | Full Stack Developer |
+
+_Solo submission for Superteam Nepal University Tour – KU Hackathon_
+
+---
+
+## Solana Integration Highlights
+
+- **Phantom Wallet:** Seamless wallet connection for staking and payouts.
+- **Escrow on Solana:** Stakes are held trustlessly and released based on commitment results.
+- **Devnet Ready:** All transactions run on Solana Devnet for hackathon demo.
+
+---
+
+## Acknowledgements
+
+Built for **Superteam Nepal University Tour** at **Kathmandu University**.
+
+---
+
+_Vibecoded due to deadline. Manual improvements coming soon!_
