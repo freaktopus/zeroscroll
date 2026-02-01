@@ -1,3 +1,8 @@
+// Polyfills - MUST be imported first, in this exact order
+import "react-native-get-random-values"; // Must be first for crypto support
+import { Buffer } from "buffer";
+global.Buffer = global.Buffer || Buffer;
+
 import "../global.css";
 import {
   DarkTheme,
@@ -10,15 +15,25 @@ import "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { View } from "react-native";
+import { View, ActivityIndicator } from "react-native";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-export default function RootLayout() {
+function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const insets = useSafeAreaInsets();
+  useSafeAreaInsets(); // Hook required by some components
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-[#181A20] items-center justify-center">
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -28,5 +43,13 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style="auto" hidden={true} />
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }

@@ -1,0 +1,35 @@
+# Build artifacts
+/target
+debug/
+
+# Environment files (contains secrets)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# Backup files
+**/*.rs.bk
+*.pdb
+
+# Cargo lock (optional - uncomment if you want to ignore)
+# Cargo.lock
+
+# Mutation testing
+**/mutants.out*/

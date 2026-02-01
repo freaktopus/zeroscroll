@@ -1,57 +1,116 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import type { CommitmentDisplay } from "@/types";
+import { getStatusColor } from "@/services/api";
 
-interface Commitment {
-  id: number;
-  user: string;
-  app: string;
-  limit: string;
-  amount: string;
-  status: string;
-  date: string;
+interface CurrentStatusProps {
+  commitments: CommitmentDisplay[];
+  onCommitmentPress?: (id: string) => void;
 }
 
-interface CommitmentHistoryProps {
-  commitments: Commitment[];
-}
+export default function CurrentStatus({
+  commitments,
+  onCommitmentPress,
+}: CurrentStatusProps) {
+  if (commitments.length === 0) {
+    return null;
+  }
 
-export default function CurrentStatus({ commitments }: CommitmentHistoryProps) {
   return (
     <View>
-      <View className="mt-6 mb-2">
-        <Text className="text-gray-400 text-base">Current Status</Text>
+      <View className="mt-4 mb-2 flex-row justify-between items-center">
+        <Text className="text-gray-400 text-base">Active Stakes</Text>
+        <View className="bg-blue-500/20 px-2 py-1 rounded-full">
+          <Text className="text-blue-300 text-xs">
+            {commitments.length} active
+          </Text>
+        </View>
       </View>
-      <View className="bg-[#23242b] rounded-2xl p-5 mb-5">
-        {commitments.map((item) => (
-          <View
+      <View className="bg-[#23242b] rounded-2xl p-4 mb-4">
+        {commitments.map((item, index) => (
+          <Pressable
             key={item.id}
-            className="flex flex-row justify-between items-center border-b border-[#222] py-3"
+            onPress={() => onCommitmentPress?.(item.id)}
+            className={`flex-row justify-between items-center py-3 ${
+              index < commitments.length - 1 ? "border-b border-white/5" : ""
+            }`}
           >
-            <View className="flex flex-row items-center">
-              <View className="bg-blue-400 w-9 h-9 rounded-full flex items-center justify-center">
-                <Text className="text-white font-bold">{item.user[0]}</Text>
+            <View className="flex-row items-center flex-1">
+              {/* Status Indicator */}
+              <View
+                className={`w-10 h-10 rounded-full items-center justify-center ${
+                  item.status === "active"
+                    ? "bg-blue-500/20"
+                    : item.status === "pending"
+                      ? "bg-yellow-500/20"
+                      : item.status === "locked"
+                        ? "bg-orange-500/20"
+                        : "bg-purple-500/20"
+                }`}
+              >
+                <Ionicons
+                  name={
+                    item.status === "active"
+                      ? "play-circle"
+                      : item.status === "pending"
+                        ? "time"
+                        : item.status === "locked"
+                          ? "lock-closed"
+                          : "hourglass"
+                  }
+                  size={20}
+                  color={
+                    item.status === "active"
+                      ? "#3b82f6"
+                      : item.status === "pending"
+                        ? "#eab308"
+                        : item.status === "locked"
+                          ? "#f97316"
+                          : "#a855f7"
+                  }
+                />
               </View>
-              <View className="ml-3">
-                <Text className="text-white font-bold text-base">
+
+              <View className="ml-3 flex-1">
+                <Text
+                  className="text-white font-semibold text-base"
+                  numberOfLines={1}
+                >
                   {item.user}
                 </Text>
-                <Text className="text-gray-400 text-xs">
-                  {item.app} • {item.limit}
-                </Text>
+                <View className="flex-row items-center">
+                  <Text className="text-gray-400 text-xs">
+                    {item.app} • {item.limit}
+                  </Text>
+                </View>
               </View>
             </View>
-            <View className="flex flex-col items-end">
+
+            <View className="items-end">
               <Text className="text-white font-bold text-base">
                 {item.amount}
               </Text>
-              <Text
-                className={`font-bold text-xs mt-1 ${item.status === "Active" ? "text-blue-400" : "text-red-400"}`}
-              >
-                {item.status}
-              </Text>
-              <Text className="text-gray-500 text-xs mt-1">{item.date}</Text>
+              <View className="flex-row items-center">
+                <View
+                  className={`w-2 h-2 rounded-full mr-1 ${
+                    item.status === "active"
+                      ? "bg-blue-400"
+                      : item.status === "pending"
+                        ? "bg-yellow-400"
+                        : item.status === "locked"
+                          ? "bg-orange-400"
+                          : "bg-purple-400"
+                  }`}
+                />
+                <Text
+                  className={`text-xs capitalize ${getStatusColor(item.status)}`}
+                >
+                  {item.status}
+                </Text>
+              </View>
             </View>
-          </View>
+          </Pressable>
         ))}
       </View>
     </View>

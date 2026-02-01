@@ -1,46 +1,49 @@
 import { Tabs, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ActivityIndicator, BackHandler, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-
-const STORAGE_KEY = "wallet_address";
+import { useAuth } from "@/context/AuthContext";
 
 export default function TabLayout() {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [ready, setReady] = useState(false);
-
 
   useFocusEffect(
     useCallback(() => {
-      let cancelled = false;
-      setReady(false);
+      console.log(
+        "[TABS] useFocusEffect - isAuthenticated:",
+        isAuthenticated,
+        "isLoading:",
+        isLoading,
+        "user:",
+        !!user,
+      );
+      if (isLoading) {
+        console.log("[TABS] Still loading, waiting...");
+        return;
+      }
 
-      (async () => {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
-        if (cancelled) return;
+      if (!isAuthenticated || !user) {
+        console.log("[TABS] Not authenticated, redirecting to login");
+        router.replace("/(auth)/login");
+        return;
+      }
 
-        if (!saved) {
-          router.replace("/(auth)/login"); // kicks you out immediately
-          return;
-        }
-        setReady(true);
-      })();
-
-      return () => {
-        cancelled = true;
-      };
-    }, [router]),
+      // User is authenticated
+      console.log("[TABS] Authenticated! Setting ready=true");
+      setReady(true);
+    }, [isAuthenticated, isLoading, user, router]),
   );
 
-  if (!ready) {
+  if (!ready || isLoading) {
     return (
       <View className="flex-1 bg-[#181A20] items-center justify-center">
-        <ActivityIndicator />
+        <ActivityIndicator size="large" color="#3b82f6" />
       </View>
     );
   }
@@ -49,15 +52,19 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarStyle: {
+          backgroundColor: "#1a1b1e",
+          borderTopColor: "#333",
+        },
         headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Recents",
-          tabBarIcon: () => (
-            <MaterialIcons size={28} name="space-dashboard" color="white" />
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons size={28} name="home" color={color} />
           ),
         }}
       />
@@ -65,8 +72,8 @@ export default function TabLayout() {
         name="leaderboard"
         options={{
           title: "Leaderboard",
-          tabBarIcon: () => (
-            <MaterialIcons size={28} name="leaderboard" color="white" />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons size={28} name="leaderboard" color={color} />
           ),
         }}
       />
@@ -74,9 +81,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="addStake"
         options={{
-          title: "Add Stake",
-          tabBarIcon: () => (
-            <MaterialIcons size={28} name="add" color="white" />
+          title: "New Stake",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons size={28} name="add-circle" color={color} />
           ),
         }}
       />
@@ -84,10 +91,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
-          tabBarIcon: () => (
-            <MaterialIcons size={28} name="settings" color="white" />
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons size={28} name="person" color={color} />
           ),
+        }}
+      />
+
+      {/* Hidden screen - accessible via navigation */}
+      <Tabs.Screen
+        name="stake_details"
+        options={{
+          href: null, // Hide from tab bar
+          title: "Wallet Details",
         }}
       />
     </Tabs>

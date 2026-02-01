@@ -9,7 +9,7 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# Native builds
 .kotlin/
 *.orig.*
 *.jks
@@ -31,6 +31,8 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.local
 .env*.local
 
 # typescript
@@ -38,7 +40,23 @@ yarn-error.*
 
 app-example
 
-# generated native folders
+# generated native folders - keep android since it has custom config
 /ios
-/android
-.vscode
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Android build outputs (large files)
+android/app/build/
+android/build/
+android/.gradle/
+*.apk
+*.aab
+
+# iOS build outputs
+*.ipa
+*.xcarchive

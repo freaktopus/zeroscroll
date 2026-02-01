@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sanjaypahari.zeroscroll"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,8 +22,15 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "data": [{ "scheme": "zeroscroll" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "zeroscroll"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "edgeToEdgeEnabled": true,
