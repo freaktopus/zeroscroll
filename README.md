@@ -1,6 +1,6 @@
 # ZeroScroll
 
-> **Built for Superteam Nepal University Tour – Kathmandu University Hackathon**
+> **Built for Superteam Nepal**
 
 ZeroScroll is a Solana-powered mobile app that helps you build better digital habits by staking real money on your screen time goals. If you fail, your friend wins your stake. Real accountability, real rewards, powered by blockchain.
 
@@ -116,7 +116,7 @@ npx expo start
 | ---------- | -------------------- |
 | freaktopus | Full Stack Developer |
 
-_Solo submission for Superteam Nepal University Tour – KU Hackathon_
+_Solo submission for Superteam Nepal_
 
 ---
 
@@ -130,6 +130,6 @@ _Solo submission for Superteam Nepal University Tour – KU Hackathon_
 
 ## Acknowledgements
 
-Built for **Superteam Nepal University Tour** at **Kathmandu University**.
+Built for **Superteam Nepal**.
 
 ---
