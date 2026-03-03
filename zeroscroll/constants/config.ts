@@ -1,32 +1,24 @@
-// API Configuration
-// Change this to your backend URL
-
-// For Android EMULATOR use: "http://10.0.2.2:3000"
-// For PHYSICAL DEVICE use your computer's local IP: "http://192.168.X.X:3000"
-// Find your IP with: ip addr show | grep "inet " | grep -v 127.0.0.1
-
 export const API_URL = __DEV__
-  ? "http://192.168.110.207:3000" // <-- CHANGE THIS to your computer's IP for physical device
-  : "https://your-production-api.com";
+  ? "http://192.168.1.14:3000" // laptop Ip
+  : "https://your-production-api.com"; //when there is production ready api for backed zcrow
 
-// App Identity for MWA
-// Note: icon must be a relative URI path, not an absolute URL
+// App Identity for MWA - Mobile Wallet Adapter requires a unique identity for the app to request wallet connections and transactions. This should be consistent across all interactions with the wallet.
 export const APP_IDENTITY = {
   name: "ZeroScroll",
   uri: "https://zeroscroll.app",
-  icon: "/icon.png", // Relative URI as required by MWA protocol
+  icon: "/icon.png", // relative path for the pulbic icon
 };
 
-// Solana cluster
-export const SOLANA_CLUSTER = "solana:devnet"; // Change to 'solana:mainnet-beta' for production
+// tell zeroscroll app which solona network to consider
+export const SOLANA_CLUSTER = "solana:devnet"; // free tokens usages so devnet
 
-// App Owner Wallet (receives lost solo stakes)
+// Default account to recieve users loss amount
+// Account: Freaktopus
 export const APP_OWNER_WALLET = "Bnne37SwhZH2tn3MC3fx6B5ZKWRWTfzFFPw8c8Tg5ixc";
 
-// Constants
+// Solana transaction are counted in lamports, which are 1 billionth of a SOL. This constant is used to convert between SOL and lamports when displaying balances or sending transactions.
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 
-// Storage keys
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: "zcrow_access_token",
   USER: "zcrow_user",
