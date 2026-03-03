@@ -133,5 +133,3 @@ _Solo submission for Superteam Nepal University Tour – KU Hackathon_
 Built for **Superteam Nepal University Tour** at **Kathmandu University**.
 
 ---
-
-_Vibecoded due to deadline. Manual improvements coming soon!_
