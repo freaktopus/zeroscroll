@@ -1,6 +1,18 @@
-# ZeroScroll
+<p align="center">
+  <img src="./zeroscroll/assets/images/icon.png" width="140" alt="ZeroScroll Logo" />
+</p>
 
-> **Built for Superteam Nepal**
+<h1 align="center">ZeroScroll</h1>
+<p align="center">
+  <img src="https://img.shields.io/badge/Solana-Devnet-purple" />
+  <img src="https://img.shields.io/badge/React%20Native-Expo-blue" />
+  <img src="https://img.shields.io/badge/Rust-Axum-orange" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-blue" />
+</p>
+
+<p align="center">
+  <b>Stake your focus. Win your discipline.</b><br/>
+</p>
 
 ZeroScroll is a Solana-powered mobile app that helps you build better digital habits by staking real money on your screen time goals. If you fail, your friend wins your stake. Real accountability, real rewards, powered by blockchain.
 
