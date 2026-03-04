@@ -75,6 +75,20 @@ pub async fn update_last_login(pool: &PgPool, user_id: Uuid) -> anyhow::Result<(
     Ok(())
 }
 
+/// Update wallet label
+pub async fn update_wallet_label(pool: &PgPool, user_id: Uuid, label: &str) -> anyhow::Result<()> {
+    sqlx::query(
+        r#"
+        UPDATE users SET wallet_label = $2 WHERE id = $1
+        "#,
+    )
+    .bind(user_id)
+    .bind(label)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 /// Login or create: returns (is_new, user)
 pub async fn login_or_create(
     pool: &PgPool,

@@ -17,17 +17,16 @@ import debounce from "@/utils/debounce";
 export default function Register() {
   const router = useRouter();
   const {
-    profile,
     walletAddress,
-    setUsername,
-    updateProfile,
+    register,
     isAuthenticated,
     isLoading,
+    pendingRegistration,
   } = useAuth();
 
-  const [usernameInput, setUsernameInput] = useState(profile?.username || "");
-  const [displayName, setDisplayName] = useState(profile?.display_name || "");
-  const [bio, setBio] = useState(profile?.bio || "");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
 
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
     null,
@@ -36,12 +35,12 @@ export default function Register() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if not authenticated
+  // Redirect if not in a valid state (neither authenticated nor pending registration)
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isAuthenticated && !pendingRegistration) {
       router.replace("/(auth)/login");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, pendingRegistration, router]);
 
   // Check username availability with debounce
   const checkUsername = useMemo(
@@ -64,7 +63,7 @@ export default function Register() {
         try {
           setCheckingUsername(true);
           const { available } = await api.checkUsername(username);
-          setUsernameAvailable(available || profile?.username === username);
+          setUsernameAvailable(available);
         } catch (err) {
           console.error("Error checking username:", err);
           setUsernameAvailable(null);
@@ -72,68 +71,73 @@ export default function Register() {
           setCheckingUsername(false);
         }
       }, 500),
-    [profile?.username],
+    [],
   );
 
   useEffect(() => {
-    if (usernameInput !== profile?.username) {
+    if (usernameInput.length > 0) {
       setCheckingUsername(true);
       checkUsername(usernameInput);
     } else {
-      setUsernameAvailable(true);
+      setUsernameAvailable(null);
     }
-  }, [usernameInput, checkUsername, profile?.username]);
+  }, [usernameInput, checkUsername]);
 
   const handleSave = async () => {
     try {
       setSaving(true);
       setError(null);
 
-      // Set username if changed or new
-      if (usernameInput && usernameInput !== profile?.username) {
-        if (!usernameAvailable) {
-          Alert.alert(
-            "Username Unavailable",
-            "Please choose a different username.",
-          );
-          return;
-        }
-        await setUsername(usernameInput);
+      if (!usernameInput || usernameInput.length < 3) {
+        Alert.alert(
+          "Required",
+          "Please enter a username (at least 3 characters).",
+        );
+        setSaving(false);
+        return;
       }
 
-      // Update profile if changed
-      const profileUpdates: any = {};
-      if (displayName !== profile?.display_name) {
-        profileUpdates.display_name = displayName || null;
-      }
-      if (bio !== profile?.bio) {
-        profileUpdates.bio = bio || null;
+      if (!displayName.trim()) {
+        Alert.alert("Required", "Please enter a display name.");
+        setSaving(false);
+        return;
       }
 
-      if (Object.keys(profileUpdates).length > 0) {
-        await updateProfile(profileUpdates);
+      if (!usernameAvailable) {
+        Alert.alert(
+          "Username Unavailable",
+          "Please choose a different username.",
+        );
+        setSaving(false);
+        return;
       }
 
-      Alert.alert(
-        "Profile Updated",
-        "Your profile has been saved successfully!",
-        [{ text: "OK", onPress: () => router.replace("/(tabs)") }],
-      );
+      // Register with backend — creates user + profile with username & display name
+      await register(usernameInput, displayName.trim());
+
+      // Registration sets isAuthenticated=true → root layout redirects to tabs
+      router.replace("/(tabs)");
     } catch (err: any) {
-      console.error("Error saving profile:", err);
-      setError(err.message || "Failed to save profile");
-      Alert.alert("Error", err.message || "Failed to save profile");
+      console.error("Registration error:", err);
+      setError(err.message || "Failed to create account");
+      Alert.alert(
+        "Error",
+        err.message || "Failed to create account. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSkip = () => {
-    router.replace("/(tabs)");
+  const handleBack = () => {
+    router.replace("/(auth)/login");
   };
 
   const canSave =
-    usernameInput.length >= 3 && usernameAvailable && !checkingUsername;
+    usernameInput.length >= 3 &&
+    displayName.trim().length > 0 &&
+    usernameAvailable === true &&
+    !checkingUsername;
 
   if (isLoading) {
     return (
@@ -150,9 +154,11 @@ export default function Register() {
     >
       {/* Header */}
       <View className="mb-6">
-        <Text className="text-white text-3xl font-bold">Complete Profile</Text>
+        <Text className="text-white text-3xl font-bold">
+          Create Your Profile
+        </Text>
         <Text className="text-gray-400 mt-2">
-          Set up your username and profile to get started.
+          Choose a username and display name to complete your account.
         </Text>
       </View>
 
@@ -201,7 +207,7 @@ export default function Register() {
         </Text>
 
         {/* Display Name */}
-        <Text className="text-gray-300 text-sm mt-5 mb-2">Display Name</Text>
+        <Text className="text-gray-300 text-sm mt-5 mb-2">Display Name *</Text>
         <TextInput
           value={displayName}
           onChangeText={setDisplayName}
@@ -233,7 +239,7 @@ export default function Register() {
           </View>
         )}
 
-        {/* Save Button */}
+        {/* Create Account Button */}
         <Pressable
           onPress={handleSave}
           disabled={!canSave || saving}
@@ -243,22 +249,17 @@ export default function Register() {
             <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white font-bold text-center text-base">
-              Save & Continue
+              Create Account
             </Text>
           )}
         </Pressable>
 
-        {/* Skip if already has username */}
-        {profile?.username && (
-          <Pressable onPress={handleSkip} className="mt-4 py-2">
-            <Text className="text-gray-400 text-center">Skip for now</Text>
-          </Pressable>
-        )}
-
-        {/* Go back */}
-        <Pressable onPress={() => router.back()} className="mt-4 py-2">
+        {/* Back to wallet connect */}
+        <Pressable onPress={handleBack} className="mt-4 py-2">
           <Text className="text-gray-300 text-center">
-            <Text className="text-blue-300 font-semibold">← Back to Login</Text>
+            <Text className="text-blue-300 font-semibold">
+              ← Use a different wallet
+            </Text>
           </Text>
         </Pressable>
       </View>

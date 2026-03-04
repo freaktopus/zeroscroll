@@ -6,24 +6,15 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, FromRow)]
 pub struct ProfileRow {
     pub user_id: Uuid,
-    pub username: Option<String>,
-    pub display_name: Option<String>,
+    pub username: String,
+    pub display_name: String,
     pub avatar_url: Option<String>,
     pub bio: Option<String>,
     pub updated_at: DateTime<Utc>,
 }
 
-/// Ensure a profile exists for the user (create if not exists)
+/// Get profile for user (must already exist — created during registration)
 pub async fn ensure_profile(pool: &PgPool, user_id: Uuid) -> anyhow::Result<ProfileRow> {
-    // Insert if not exists
-    sqlx::query(
-        r#"INSERT INTO profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING"#,
-    )
-    .bind(user_id)
-    .execute(pool)
-    .await?;
-
-    // Return the profile
     let p = sqlx::query_as::<_, ProfileRow>(
         r#"
         SELECT user_id, username, display_name, avatar_url, bio, updated_at
@@ -35,6 +26,32 @@ pub async fn ensure_profile(pool: &PgPool, user_id: Uuid) -> anyhow::Result<Prof
     .fetch_one(pool)
     .await?;
 
+    Ok(p)
+}
+
+/// Create a profile with username and display name in one step
+pub async fn create_profile_with_details(
+    pool: &PgPool,
+    user_id: Uuid,
+    username: &str,
+    display_name: &str,
+) -> anyhow::Result<ProfileRow> {
+    let p = sqlx::query_as::<_, ProfileRow>(
+        r#"
+        INSERT INTO profiles (user_id, username, display_name)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id) DO UPDATE
+            SET username = EXCLUDED.username,
+                display_name = EXCLUDED.display_name,
+                updated_at = now()
+        RETURNING user_id, username, display_name, avatar_url, bio, updated_at
+        "#,
+    )
+    .bind(user_id)
+    .bind(username)
+    .bind(display_name)
+    .fetch_one(pool)
+    .await?;
     Ok(p)
 }
 

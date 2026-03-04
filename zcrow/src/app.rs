@@ -23,6 +23,7 @@ pub fn make_router(state: auth::AppState) -> Router {
         // Auth routes
         .route("/auth/challenge", post(auth::challenge))
         .route("/auth/wallet", post(auth::wallet_login))
+        .route("/auth/register", post(auth::register))
         
         // Profile routes (authenticated)
         .route("/me", get(profile::get_me))

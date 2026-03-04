@@ -9,8 +9,8 @@ export interface User {
 
 export interface Profile {
   user_id: string;
-  username: string | null;
-  display_name: string | null;
+  username: string;
+  display_name: string;
   avatar_url: string | null;
   bio: string | null;
   updated_at: string;
@@ -33,8 +33,34 @@ export interface ChallengeResponse {
   expires_at: string;
 }
 
+// Wallet auth response — existing user gets full auth, new user gets registration token
+export interface WalletAuthResponse {
+  is_new: boolean;
+  // Present for existing users:
+  user?: User;
+  profile?: Profile;
+  access_token?: string;
+  // Present for new users:
+  registration_token?: string;
+  wallet_pubkey?: string;
+}
+
+// Keep LoginResponse for backward compat (existing user login result)
 export interface LoginResponse {
   is_new: boolean;
+  user: User;
+  profile: Profile;
+  access_token: string;
+}
+
+// Registration request/response
+export interface RegisterRequest {
+  registration_token: string;
+  username: string;
+  display_name: string;
+}
+
+export interface RegisterResponse {
   user: User;
   profile: Profile;
   access_token: string;
@@ -168,8 +194,8 @@ export interface WalletSummary {
 export interface LeaderboardEntry {
   rank: number;
   user_id: string;
-  username: string | null;
-  display_name: string | null;
+  username: string;
+  display_name: string;
   avatar_url: string | null;
   wallet_pubkey: string;
   total_wins: number;

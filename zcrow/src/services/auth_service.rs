@@ -28,6 +28,25 @@ pub struct AuthResult {
     pub access_token: String,
 }
 
+/// Result of wallet verification — either an existing user login or a new user pending registration
+pub enum WalletAuthResult {
+    /// Existing user — fully authenticated
+    ExistingUser(AuthResult),
+    /// New wallet — needs registration with username + display_name
+    NewUser {
+        registration_token: String,
+        wallet_pubkey: String,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RegistrationClaims {
+    pub wallet: String,
+    pub purpose: String,
+    pub exp: usize,
+    pub iat: usize,
+}
+
 /// Create a challenge for wallet signature verification
 pub async fn create_challenge(pool: &PgPool, wallet_pubkey: &str) -> anyhow::Result<Challenge> {
     let nonce = Uuid::new_v4();
@@ -49,7 +68,7 @@ pub async fn create_challenge(pool: &PgPool, wallet_pubkey: &str) -> anyhow::Res
     })
 }
 
-/// Verify wallet signature and login/create user
+/// Verify wallet signature and login (existing user) or issue registration token (new user)
 pub async fn verify_and_login(
     pool: &PgPool,
     jwt_secret: &str,
@@ -57,7 +76,7 @@ pub async fn verify_and_login(
     wallet_label: Option<&str>,
     nonce: Uuid,
     signature: &str,
-) -> anyhow::Result<AuthResult> {
+) -> anyhow::Result<WalletAuthResult> {
     // Consume nonce (prevents replay)
     let message = nonce_repo::consume_nonce(pool, nonce, wallet_pubkey)
         .await?
@@ -66,21 +85,115 @@ pub async fn verify_and_login(
     // Verify the signature
     verify_signature(wallet_pubkey, signature, message.as_bytes())?;
 
-    // Login or create user
-    let (is_new, user) = user_repo::login_or_create(pool, wallet_pubkey, wallet_label).await?;
-    
-    // Ensure profile exists
-    let profile = profile_repo::ensure_profile(pool, user.id).await?;
-    
+    // Check if user already exists
+    if let Some(user) = user_repo::find_by_wallet(pool, wallet_pubkey).await? {
+        // Existing user — update login timestamp and return full auth
+        user_repo::update_last_login(pool, user.id).await?;
+        let updated = user_repo::find_by_id(pool, user.id).await?.unwrap();
+        let profile = profile_repo::ensure_profile(pool, updated.id).await?;
+        let token = mint_jwt(jwt_secret, updated.id, &updated.wallet_pubkey)?;
+
+        // Update wallet label if provided
+        if let Some(label) = wallet_label {
+            let _ = user_repo::update_wallet_label(pool, updated.id, label).await;
+        }
+
+        Ok(WalletAuthResult::ExistingUser(AuthResult {
+            is_new: false,
+            user: updated,
+            profile,
+            access_token: token,
+        }))
+    } else {
+        // New wallet — don't create user yet, issue a registration token
+        let reg_token = mint_registration_token(jwt_secret, wallet_pubkey)?;
+        Ok(WalletAuthResult::NewUser {
+            registration_token: reg_token,
+            wallet_pubkey: wallet_pubkey.to_string(),
+        })
+    }
+}
+
+/// Complete registration: create user + profile with username and display name
+pub async fn complete_registration(
+    pool: &PgPool,
+    jwt_secret: &str,
+    registration_token: &str,
+    username: &str,
+    display_name: &str,
+) -> anyhow::Result<AuthResult> {
+    // Validate the registration token
+    let wallet_pubkey = validate_registration_token(jwt_secret, registration_token)?;
+
+    // Check if wallet was already registered (race condition guard)
+    if let Some(existing) = user_repo::find_by_wallet(pool, &wallet_pubkey).await? {
+        // Already registered — just return login
+        let profile = profile_repo::ensure_profile(pool, existing.id).await?;
+        let token = mint_jwt(jwt_secret, existing.id, &existing.wallet_pubkey)?;
+        return Ok(AuthResult {
+            is_new: false,
+            user: existing,
+            profile,
+            access_token: token,
+        });
+    }
+
+    // Check username availability
+    if !profile_repo::is_username_available(pool, username).await? {
+        anyhow::bail!("username is already taken");
+    }
+
+    // Create user
+    let user = user_repo::create_user(pool, &wallet_pubkey, None).await?;
+
+    // Create profile with username and display name
+    let profile = profile_repo::create_profile_with_details(
+        pool, user.id, username, display_name,
+    ).await?;
+
     // Mint JWT
     let token = mint_jwt(jwt_secret, user.id, &user.wallet_pubkey)?;
 
     Ok(AuthResult {
-        is_new,
+        is_new: true,
         user,
         profile,
         access_token: token,
     })
+}
+
+/// Mint a short-lived registration token (proves wallet ownership for registration)
+fn mint_registration_token(jwt_secret: &str, wallet: &str) -> anyhow::Result<String> {
+    let now = Utc::now();
+    let exp = now + Duration::minutes(10);
+
+    let claims = RegistrationClaims {
+        wallet: wallet.to_string(),
+        purpose: "registration".to_string(),
+        iat: now.timestamp() as usize,
+        exp: exp.timestamp() as usize,
+    };
+
+    Ok(encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(jwt_secret.as_bytes()),
+    )?)
+}
+
+/// Validate a registration token and return the wallet pubkey
+fn validate_registration_token(jwt_secret: &str, token: &str) -> anyhow::Result<String> {
+    let data = decode::<RegistrationClaims>(
+        token,
+        &DecodingKey::from_secret(jwt_secret.as_bytes()),
+        &Validation::default(),
+    )?;
+
+    if data.claims.purpose != "registration" {
+        anyhow::bail!("invalid token purpose");
+    }
+
+    Ok(data.claims.wallet)
 }
 
 /// Validate an existing JWT token and return claims

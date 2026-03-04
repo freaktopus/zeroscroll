@@ -1,7 +1,8 @@
 import { API_URL } from "@/constants/config";
 import type {
   ChallengeResponse,
-  LoginResponse,
+  WalletAuthResponse,
+  RegisterResponse,
   MeResponse,
   UserWithProfile,
   Profile,
@@ -96,7 +97,7 @@ class ApiService {
     walletLabel: string | null,
     nonce: string,
     signature: string,
-  ): Promise<LoginResponse> {
+  ): Promise<WalletAuthResponse> {
     return this.request("/auth/wallet", {
       method: "POST",
       body: JSON.stringify({
@@ -104,6 +105,21 @@ class ApiService {
         wallet_label: walletLabel,
         nonce,
         signature,
+      }),
+    });
+  }
+
+  async register(
+    registrationToken: string,
+    username: string,
+    displayName: string,
+  ): Promise<RegisterResponse> {
+    return this.request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        registration_token: registrationToken,
+        username,
+        display_name: displayName,
       }),
     });
   }

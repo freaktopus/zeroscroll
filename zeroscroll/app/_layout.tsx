@@ -9,7 +9,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,6 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { View, ActivityIndicator } from "react-native";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import * as NavigationBar from "expo-navigation-bar";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -24,8 +26,40 @@ export const unstable_settings = {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+  const segments = useSegments();
   useSafeAreaInsets(); // Hook required by some components
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated, pendingRegistration } = useAuth();
+
+  useEffect(() => {
+    // Hide Android system navigation bar in immersive mode (shows on swipe up)
+    const configureNavigationBar = async () => {
+      try {
+        await NavigationBar.setVisibilityAsync("hidden");
+      } catch (error) {
+        console.log("Navigation bar configuration not available:", error);
+      }
+    };
+    configureNavigationBar();
+  }, []);
+
+  // Auth-aware navigation: redirect based on auth state
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (isAuthenticated && inAuthGroup) {
+      // Authenticated user on auth screens → go to tabs
+      console.log("[ROOT] Authenticated → tabs");
+      router.replace("/(tabs)");
+    } else if (!isAuthenticated && !pendingRegistration && !inAuthGroup) {
+      // Not authenticated, not registering, not on auth screens → login
+      console.log("[ROOT] Not authenticated → login");
+      router.replace("/(auth)/login");
+    }
+    // pendingRegistration + on register page → stay (don't redirect)
+  }, [isLoading, isAuthenticated, pendingRegistration, segments, router]);
 
   if (isLoading) {
     return (
